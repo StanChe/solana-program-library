@@ -530,7 +530,7 @@ mod tests {
         canopy_bytes[5 * size_of::<Node>()..].fill(0);
         check_canopy_no_nodes_to_right_of_index(&canopy_bytes, 20, (3 << (20 - 2)) - 1).unwrap();
     }
-    
+
     #[test]
     fn test_succes_check_canopy_no_nodes_to_right_of_index_no_canopy() {
         let canopy_bytes = vec![];

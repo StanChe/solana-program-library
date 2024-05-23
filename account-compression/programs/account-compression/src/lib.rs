@@ -272,6 +272,8 @@ pub mod spl_account_compression {
     /// This method should be used for rolluped creation of trees. The indexing of such rollups should be done off-chain. The programs calling this instruction should take care of ensuring the indexing is possible. For example, staking may be required to ensure the tree creator has some responsibility for what is being indexed. If indexing is not possible, there should be a mechanism to penalize the tree creator.
     pub fn init_merkle_tree_with_root(
         ctx: Context<Initialize>,
+        max_depth: u32,
+        max_buffer_size: u32,
         root: [u8; 32],
         rightmost_leaf: [u8; 32],
         rightmost_index: u32,
@@ -283,11 +285,23 @@ pub mod spl_account_compression {
         );
         let mut merkle_tree_bytes = ctx.accounts.merkle_tree.try_borrow_mut_data()?;
 
-        let (header_bytes, rest) =
+        let (mut header_bytes, rest) =
             merkle_tree_bytes.split_at_mut(CONCURRENT_MERKLE_TREE_HEADER_SIZE_V1);
         // the header should already be initialized with prepare_tree
-        let header = ConcurrentMerkleTreeHeader::try_from_slice(&header_bytes)?;
-        header.assert_valid_authority(&ctx.accounts.authority.key())?;
+        let mut header = ConcurrentMerkleTreeHeader::try_from_slice(&header_bytes)?;
+
+        if header.is_initialized() {
+            header.assert_valid_authority(&ctx.accounts.authority.key())?;
+        } else {
+            header.initialize(
+                max_depth,
+                max_buffer_size,
+                &ctx.accounts.authority.key(),
+                Clock::get()?.slot,
+            );
+            header.serialize(&mut header_bytes)?;
+        }
+
         let merkle_tree_size = merkle_tree_get_size(&header)?;
         let (tree_bytes, canopy_bytes) = rest.split_at_mut(merkle_tree_size);
         // check the canopy root matches the tree root

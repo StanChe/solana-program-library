@@ -102,13 +102,11 @@ impl ConcurrentMerkleTreeHeader {
     pub fn is_initialized(&self) -> bool {
         match self.account_type {
             CompressionAccountType::Uninitialized => false,
-            CompressionAccountType::ConcurrentMerkleTree => {
-                match &self.header {
-                    ConcurrentMerkleTreeHeaderData::V1(header) => {
-                        header.max_buffer_size != 0 && header.max_depth != 0
-                    }
+            CompressionAccountType::ConcurrentMerkleTree => match &self.header {
+                ConcurrentMerkleTreeHeaderData::V1(header) => {
+                    header.max_buffer_size != 0 && header.max_depth != 0
                 }
-            }
+            },
         }
     }
 
@@ -179,10 +177,10 @@ pub fn merkle_tree_get_size(header: &ConcurrentMerkleTreeHeader) -> Result<usize
         (7, 16) => Ok(size_of::<ConcurrentMerkleTree<7, 16>>()),
         (8, 16) => Ok(size_of::<ConcurrentMerkleTree<8, 16>>()),
         (9, 16) => Ok(size_of::<ConcurrentMerkleTree<9, 16>>()),
-        (10, 32)=> Ok(size_of::<ConcurrentMerkleTree<10, 32>>()),
-        (11, 32)=> Ok(size_of::<ConcurrentMerkleTree<11, 32>>()),
-        (12, 32)=> Ok(size_of::<ConcurrentMerkleTree<12, 32>>()),
-        (13, 32)=> Ok(size_of::<ConcurrentMerkleTree<13, 32>>()),
+        (10, 32) => Ok(size_of::<ConcurrentMerkleTree<10, 32>>()),
+        (11, 32) => Ok(size_of::<ConcurrentMerkleTree<11, 32>>()),
+        (12, 32) => Ok(size_of::<ConcurrentMerkleTree<12, 32>>()),
+        (13, 32) => Ok(size_of::<ConcurrentMerkleTree<13, 32>>()),
         (14, 64) => Ok(size_of::<ConcurrentMerkleTree<14, 64>>()),
         (14, 256) => Ok(size_of::<ConcurrentMerkleTree<14, 256>>()),
         (14, 1024) => Ok(size_of::<ConcurrentMerkleTree<14, 1024>>()),
