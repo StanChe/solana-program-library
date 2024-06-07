@@ -118,3 +118,8 @@ macro_rules! merkle_tree_apply_fn {
         _merkle_tree_apply_fn!($header, $id, $bytes, $func, TreeLoad::Immutable, $($arg)*)
     };
 }
+
+pub(crate) use merkle_tree_apply_fn_mut;
+pub(crate) use merkle_tree_apply_fn;
+pub(crate) use _merkle_tree_depth_size_apply_fn;
+pub(crate) use _merkle_tree_apply_fn;
