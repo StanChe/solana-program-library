@@ -307,14 +307,14 @@ pub mod spl_account_compression {
         assert_eq!(proof.len(), header.get_max_depth() as usize);
 
         let id = ctx.accounts.merkle_tree.key();
-        let args = Box::new(InitializeWithRootArgs {
+        let args = &InitializeWithRootArgs {
             root,
             rightmost_leaf,
-            proof: proof,
+            proof,
             index: rightmost_index,
-        });
+        };
         // A call is made to ConcurrentMerkleTree::initialize_with_root(root, rightmost_leaf, proof, rightmost_index)
-        let change_log = concurent_tree_initialize_with_root(&header, id, tree_bytes, &args)?;
+        let change_log = merkle_tree_initialize_with_root(&header, id, tree_bytes, args)?;
         update_canopy(canopy_bytes, header.get_max_depth(), Some(&change_log))?;
         wrap_event(
             &AccountCompressionEvent::ChangeLog(*change_log),
@@ -356,14 +356,14 @@ pub mod spl_account_compression {
         let id = ctx.accounts.merkle_tree.key();
         // A call is made to ConcurrentMerkleTree::set_leaf(root, previous_leaf, new_leaf, proof, index)
 
-        let args = Box::new(SetLeafArgs {
+        let args = &SetLeafArgs {
             current_root: root,
             previous_leaf,
             new_leaf,
             proof_vec: proof,
             index,
-        });
-        let change_log_event = concurent_tree_set_leaf(&header, id, tree_bytes, &args)?;
+        };
+        let change_log_event = merkle_tree_set_leaf(&header, id, tree_bytes, args)?;
         update_canopy(
             canopy_bytes,
             header.get_max_depth(),
@@ -430,13 +430,13 @@ pub mod spl_account_compression {
         fill_in_proof_from_canopy(canopy_bytes, header.get_max_depth(), index, &mut proof)?;
         let id = ctx.accounts.merkle_tree.key();
 
-        let args = Box::new(ProofLeafArgs {
+        let args = &ProofLeafArgs {
             current_root: root,
             leaf,
             proof_vec: proof,
             index,
-        });
-        concurent_tree_prove_leaf(&header, id, tree_bytes, &args)?;
+        };
+        merkle_tree_prove_leaf(&header, id, tree_bytes, args)?;
         Ok(())
     }
 
@@ -507,13 +507,13 @@ pub mod spl_account_compression {
         fill_in_proof_from_canopy(canopy_bytes, header.get_max_depth(), index, &mut proof)?;
         // A call is made to ConcurrentMerkleTree::fill_empty_or_append
         let id = ctx.accounts.merkle_tree.key();
-        let args = Box::new(FillEmptyOrAppendArgs {
+        let args = &FillEmptyOrAppendArgs {
             current_root: root,
             leaf,
             proof_vec: proof,
             index,
-        });
-        let change_log_event = concurent_tree_fill_empty_or_append(&header, id, tree_bytes, &args)?;
+        };
+        let change_log_event = merkle_tree_fill_empty_or_append(&header, id, tree_bytes, args)?;
         update_canopy(
             canopy_bytes,
             header.get_max_depth(),
