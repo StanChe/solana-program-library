@@ -27,6 +27,12 @@ fn check_leaf_index(leaf_index: u32, max_depth: usize) -> Result<(), ConcurrentM
     Ok(())
 }
 
+pub struct InitializeWithRootArgs {
+    pub root: Node,
+    pub rightmost_leaf: Node,
+    pub proof: Vec<Node>,
+    pub index: u32,
+}
 /// Conurrent Merkle Tree is a Merkle Tree that allows
 /// multiple tree operations targeted for the same tree root to succeed.
 ///
@@ -132,35 +138,32 @@ impl<const MAX_DEPTH: usize, const MAX_BUFFER_SIZE: usize>
     /// other applications from indexing the leaf data stored in this tree.
     pub fn initialize_with_root(
         &mut self,
-        root: Node,
-        rightmost_leaf: Node,
-        proof_vec: &[Node],
-        index: u32,
+        args: Box<InitializeWithRootArgs>,
     ) -> Result<Node, ConcurrentMerkleTreeError> {
         check_bounds(MAX_DEPTH, MAX_BUFFER_SIZE);
-        check_leaf_index(index, MAX_DEPTH)?;
+        check_leaf_index(args.index, MAX_DEPTH)?;
 
         if self.is_initialized() {
             return Err(ConcurrentMerkleTreeError::TreeAlreadyInitialized);
         }
         let mut proof: [Node; MAX_DEPTH] = [Node::default(); MAX_DEPTH];
-        proof.copy_from_slice(proof_vec);
+        proof.copy_from_slice(&args.proof);
         let rightmost_proof = Path {
             proof,
-            index: index + 1,
-            leaf: rightmost_leaf,
+            index: args.index + 1,
+            leaf: args.rightmost_leaf,
             _padding: 0,
         };
-        self.change_logs[0].root = root;
+        self.change_logs[0].root = args.root;
         self.sequence_number = 1;
         self.active_index = 0;
         self.buffer_size = 1;
         self.rightmost_proof = rightmost_proof;
-        if root != recompute(rightmost_leaf, &proof, index) {
+        if args.root != recompute(args.rightmost_leaf, &proof, args.index) {
             solana_logging!("Proof failed to verify");
             return Err(ConcurrentMerkleTreeError::InvalidProof);
         }
-        Ok(root)
+        Ok(args.root)
     }
 
     /// Errors if one of the leaves of the current merkle tree is non-EMPTY
